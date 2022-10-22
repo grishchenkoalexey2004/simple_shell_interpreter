@@ -56,3 +56,6 @@ Thumbs.db
 #pdfs
 *.pdf
 
+
+#formatter config file 
+*.clang-format
