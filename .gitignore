@@ -8,7 +8,7 @@ node_modules/
 dist/
 
 #some C files
-/test.c
+**/test.c
 
 # Compiled Java class files
 *.class

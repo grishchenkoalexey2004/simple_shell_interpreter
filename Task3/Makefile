@@ -1,6 +1,7 @@
 
 all: graph.o list.o sort.o
 	gcc -g -Wall -o task3.out graph.o list.o sort.o
+	rm *.o
 
 sort.o:
 	gcc -g -Wall -c -o sort.o sort.c
