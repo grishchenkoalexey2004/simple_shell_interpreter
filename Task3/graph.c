@@ -1,122 +1,169 @@
 #include "list.h"
 #include <stdio.h>
+#include <string.h>
+// size of symbol block we will read until eof
+#define BLOCK_SIZE 11
+typedef enum {
+    Start,
+    Word,
+    Greater,
+    Greater2,
+    Ampersand,
+    Ampersand2,
+    Unpairable_special,
+    Stop
+} vertex;
 
-//TODO - move newline code into start node 
-// add unpairable special sym node 
-
-
-//returns 1 if c - special symbol
-int is_special(int c){
-    return  (c=='|') || (c=='&') || (c==';') || (c == '>') || (c == '<') || (c == ',');
+// returns 1 if c - special symbol
+int is_special(int c) {
+    return (c == '|') || (c == '&') || (c == ';') || (c == '>') || (c == '<') ||
+           (c == ',');
 }
 
-int is_pairable(int c){
-    return (c=='&') || (c == '>');
-}
+int is_pairable(int c) { return (c == '&') || (c == '>'); }
 
-//returns 1 if c - is a normal symbol
+// returns 1 if c - is a normal symbol
 int symset(int c) {
-    return (c != '\n') && (c != ' ') && (c != '\t') && (c != EOF) && (!is_special(c));
+    return (c != '\n') && (c != ' ') && (c != '\t') && (c != EOF) &&
+           (!is_special(c));
+}
+
+void read_char_block(char char_block[]) {
+    fscanf(stdin, "%10c", char_block);
+    return;
+}
+
+void clear_char_block(char arr[]) {
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        arr[i] = 0;
+    }
+    return;
+}
+
+//checks if char block is read
+int char_block_read(int ind){
+    return (ind==BLOCK_SIZE);
+}
+
+// retrives next char from the array 
+// increases ind by 1 
+
+char get_next_char(char char_block[],int *ind){
+    char next_char = char_block[*ind];
+    *ind = *ind +1;
+    return next_char;
 }
 
 
+// processes char block (writes char && words to list)
+// params : char block  ; vertex - last vertex of the graph
+// returns : new graph vertex 
 
-
-
-int main() {
-    char input_char;
-    typedef enum { Start,Word,Greater,Greater2,Ampersand,Ampersand2,Unpairable_special,Stop } vertex;
-    vertex V = Start;
-
-    input_char = getchar();
-    null_list();
-    while (1) {
+vertex process_char_block(char char_block[], vertex V) {
+    char input_char = char_block[0];
+    int char_ind = 1;
+    while (1){
         switch (V) {
-            //this vertex is reached at the beginning of program's runtime 
-            //or than previous word input was interrupted for various purposes
+    
             case Start:
-                // space or tab termination 
+                // space or tab termination
                 if (input_char == ' ' || input_char == '\t')
-                    input_char = getchar();
+                    input_char = get_next_char(char_block,&char_ind);
 
-                //if previous word was terminated by eof - print list and exit the program
-                else if (input_char == EOF) 
-                    V = Stop;
+                else if (input_char == '\0'){
 
-                //newline termination - print list, clear list, get ready to input next line 
-                else if (input_char == '\n'){
+                    if (char_block_read(char_ind))
+                        return Start;
+                    else
+                        V = Stop;
+                }
+
+                    
+
+                // newline termination - print list, clear list, get ready to input next
+                else if (input_char == '\n') {
                     term_list();
                     print_list();
                     clear_list();
-                    input_char = getchar();
+                    input_char = get_next_char(char_block,&char_ind);
                 }
 
-                //this code is executed in case user starts typing new word (either common or special)
+                // this code is executed in case user starts typing new word (either
+                // common or special)
                 else {
                     null_buf();
                     add_sym(input_char);
-                    if (is_pairable(input_char)){
+                    if (is_pairable(input_char)) {
                         V = (input_char == '>') ? Greater : Ampersand;
-                    }
-                    else if (is_special(input_char)){
+                    } else if (is_special(input_char)) {
                         V = Unpairable_special;
-                    }
-                    else{
+                    } else {
                         V = Word;
                     }
-                    input_char = getchar();
+                    input_char = get_next_char(char_block,&char_ind);
                 }
                 break;
 
             case Word:
                 if (symset(input_char)) {
                     add_sym(input_char);
-                    input_char = getchar();
+                    input_char = get_next_char(char_block,&char_ind);
+
+                    if (input_char=='\0'){
+                        if (char_block_read(char_ind))
+                            return Word;
+                        else{
+                            add_word();
+                            V=Stop;
+                        } 
+                    }  
                 } 
+
                 else {
                     V = Start;
                     add_word();
                 }
+                
                 break;
 
-            //if greater symbol is met we are waiting for another greater symbol
+            // if greater symbol is met we are waiting for another greater symbol
             case Greater:
                 if (input_char == '>') {
                     add_sym(input_char);
-                    //receiving symbol of next lexem
-                    input_char = getchar();
+                    // receiving symbol of next lexem
+                    input_char = get_next_char(char_block,&char_ind);
                     V = Greater2;
-                } 
+                }
 
-                //if no another greater symbol has been inputted
+                // if no another greater symbol has been inputted
                 else {
                     add_word();
                     V = Start;
                 }
                 break;
 
-            //saving >> word + going to Start vertex
+            // saving >> word + going to Start vertex
             case Greater2:
                 V = Start;
                 add_word();
                 break;
 
             case Ampersand:
-                if (input_char=='&'){
+                if (input_char == '&') {
                     add_sym(input_char);
-                    //receiving next word symbol
-                    input_char = getchar();
+                    // receiving next word symbol
+                    input_char = get_next_char(char_block,&char_ind);
                     V = Ampersand2;
                 }
 
-                else{
+                else {
                     V = Start;
                     add_word();
                 }
                 break;
 
             case Ampersand2:
-                V=Start;
+                V = Start;
                 add_word();
                 break;
 
@@ -125,13 +172,31 @@ int main() {
                 V = Start;
                 break;
 
-            //exiting program
+            // exiting program
             case Stop:
                 term_list();
                 print_list();
                 clear_list();
-                exit(0);
-                break;
-            }
+                return Stop;
+        }
     }
+    
+}
+
+
+int main() {
+    char char_block[BLOCK_SIZE];
+
+    vertex V = Start;
+    clear_char_block(char_block);
+    read_char_block(char_block);
+    null_list();
+
+    while (V!=Stop) {
+        V = process_char_block(char_block, V);
+        clear_char_block(char_block);
+        read_char_block(char_block);
+    }
+
+    return 0;
 }
