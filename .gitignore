@@ -43,6 +43,8 @@ Thumbs.db
 *.exe
 *.war
 *.out
+#object files
+*.o
 
 # Large media files
 *.mp4
