@@ -7,9 +7,12 @@
 
 //returns 1 if c - special symbol
 int is_special(int c){
-    return  (c=='|') || (c=='&') || (c==';') || (c == '>') || (c == '<') || (c = ',');
+    return  (c=='|') || (c=='&') || (c==';') || (c == '>') || (c == '<') || (c == ',');
 }
 
+int is_pairable(int c){
+    return (c=='&') || (c == '>');
+}
 
 //returns 1 if c - is a normal symbol
 int symset(int c) {
@@ -52,14 +55,16 @@ int main() {
                 else {
                     null_buf();
                     add_sym(input_char);
-                    if (is_special(input_char)){
-                        V = (input_char == '>') ? Greater : Unpairable_special;
-                        V = (input_char == '&') ? Ampersand : Unpairable_special;
+                    if (is_pairable(input_char)){
+                        V = (input_char == '>') ? Greater : Ampersand;
+                    }
+                    else if (is_special(input_char)){
+                        V = Unpairable_special;
                     }
                     else{
                         V = Word;
                     }
-                    //input_char = getchar();
+                    input_char = getchar();
                 }
                 break;
 
@@ -78,6 +83,7 @@ int main() {
             case Greater:
                 if (input_char == '>') {
                     add_sym(input_char);
+                    //receiving symbol of next lexem
                     input_char = getchar();
                     V = Greater2;
                 } 
@@ -96,9 +102,10 @@ int main() {
                 break;
 
             case Ampersand:
-                input_char = getchar();
                 if (input_char=='&'){
                     add_sym(input_char);
+                    //receiving next word symbol
+                    input_char = getchar();
                     V = Ampersand2;
                 }
 
@@ -114,7 +121,8 @@ int main() {
                 break;
 
             case Unpairable_special:
-
+                add_word();
+                V = Start;
                 break;
 
             //exiting program
