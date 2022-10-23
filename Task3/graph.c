@@ -1,60 +1,77 @@
+#include "list.h"
+#include <stdio.h>
+
+// returns 0 if symbol is special, otherwise returns 1
+// TODO: requires corrections
+
+int symset(int c) {
+    return (c != '\n') && (c != ' ') && (c != '\t') && (c != '>') && (c != EOF);
+}
 
 int main() {
+    char input_char;
     typedef enum { Start, Word, Greater, Greater2, Newline, Stop } vertex;
     vertex V = Start;
-    c = getchar();
+    input_char = getchar();
     null_list();
-    while (1)
+    while (1 == 1) {
         switch (V) {
+
         case Start:
-            if (c == ' ' || c == '\t')
-                c = getchar();
-            else if (c == EOF) {
-                termlist();
-                printlist();
-                clearlist();
+            if (input_char == ' ' || input_char == '\t')
+                input_char = getchar();
+            else if (input_char == EOF) {
+                term_list();
+                print_list();
+                clear_list();
                 V = Stop;
-            } else if (c == '\n') {
-                termlist();
-                printlist();
+            } else if (input_char == '\n') {
+                term_list();
+                print_list();
                 V = Newline;
-                c = getchar();
+                input_char = getchar();
             } else {
-                nullbuf();
-                addsym();
-                V = (c == '>') ? Greater : Word;
-                c = getchar();
+                null_buf();
+                add_sym(input_char);
+                V = (input_char == '>') ? Greater : Word;
+                input_char = getchar();
             }
             break;
+
         case Word:
-            if (symset(c)) {
-                addsym();
-                c = getchar();
+            if (symset(input_char)) {
+                add_sym(input_char);
+                input_char = getchar();
             } else {
                 V = Start;
-                addword();
+                add_word();
             }
             break;
+
         case Greater:
-            if (c == '>') {
-                addsym();
-                c = getchar();
+            if (input_char == '>') {
+                add_sym(input_char);
+                input_char = getchar();
                 V = Greater2;
             } else {
                 V = Start;
-                addword();
+                add_word();
             }
             break;
+
         case Greater2:
             V = Start;
-            addword();
+            add_word();
             break;
+
         case Newline:
-            clearlist();
+            clear_list();
             V = Start;
             break;
+
         case Stop:
             exit(0);
             break;
         }
+    }
 }
