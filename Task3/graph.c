@@ -20,7 +20,9 @@ int is_special(int c) {
            (c == ',');
 }
 
-int is_pairable(int c) { return (c == '&') || (c == '>'); }
+int is_pairable(int c){ 
+    return (c == '&') || (c == '>'); 
+}
 
 // returns 1 if c - is a normal symbol
 int symset(int c) {
@@ -78,8 +80,6 @@ vertex process_char_block(char char_block[], vertex V) {
                         V = Stop;
                 }
 
-                    
-
                 // newline termination - print list, clear list, get ready to input next
                 else if (input_char == '\n') {
                     term_list();
@@ -123,18 +123,23 @@ vertex process_char_block(char char_block[], vertex V) {
                     V = Start;
                     add_word();
                 }
-                
                 break;
 
             // if greater symbol is met we are waiting for another greater symbol
             case Greater:
-                if (input_char == '>') {
+                if (input_char =='\0'){ // checking if the is finished
+                    if (char_block_read(char_ind))
+                        return Greater;
+                    else
+                        V=Stop;
+                }
+
+                else if (input_char == '>') {
                     add_sym(input_char);
                     // receiving symbol of next lexem
                     input_char = get_next_char(char_block,&char_ind);
                     V = Greater2;
                 }
-
                 // if no another greater symbol has been inputted
                 else {
                     add_word();
@@ -149,7 +154,14 @@ vertex process_char_block(char char_block[], vertex V) {
                 break;
 
             case Ampersand:
-                if (input_char == '&') {
+                if (input_char =='\0'){ // checking if the is finished
+                    if (char_block_read(char_ind))
+                        return Ampersand;
+                    else
+                        V=Stop;
+                }
+
+                else if (input_char == '&') {
                     add_sym(input_char);
                     // receiving next word symbol
                     input_char = get_next_char(char_block,&char_ind);
@@ -183,7 +195,6 @@ vertex process_char_block(char char_block[], vertex V) {
     
 }
 
-
 int main() {
     char char_block[BLOCK_SIZE];
 
@@ -197,6 +208,5 @@ int main() {
         clear_char_block(char_block);
         read_char_block(char_block);
     }
-
     return 0;
 }
