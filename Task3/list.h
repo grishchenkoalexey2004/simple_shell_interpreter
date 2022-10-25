@@ -14,4 +14,6 @@ void add_word();
 
 void print_list();
 
+void print_sort_clear_list();
+
 void sort_list();

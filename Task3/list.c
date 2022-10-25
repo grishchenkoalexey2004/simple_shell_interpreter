@@ -91,7 +91,7 @@ void print_list() {
     int i;
     if (lst == NULL)
         return;
-    printf("\n%d\n",sizelist-1);
+    printf("%d\n",sizelist-1);
     for (i = 0; i < sizelist - 1; i++)
         printf("%s\n", lst[i]);
 }
@@ -101,5 +101,15 @@ void print_list() {
 void sort_list(){
     //subtracting 1 from sizelist since we have null at the end 
     sort(&lst,sizelist-1);
+    return;
+}
+
+//prints list, sorts list, prints list one more time and cleans list
+void print_sort_clear_list(){
+    term_list();
+    print_list();
+    sort_list();
+    print_list();
+    clear_list();
     return;
 }

@@ -1,10 +1,10 @@
 //TODO : exclude multiple <stdio.h> inclusion
 #include <stdio.h>
-#include <string.h>
 #include "list.h"
 
 // size of symbol block we will read until eof
 #define BLOCK_SIZE 11
+
 typedef enum {
     Start,
     Word,
@@ -15,6 +15,10 @@ typedef enum {
     Unpairable_special,
     Stop
 } vertex;
+
+typedef char char_block_type[BLOCK_SIZE];
+
+
 
 // returns 1 if c - special symbol
 int is_special(int c) {
@@ -32,14 +36,14 @@ int symset(int c) {
            (!is_special(c));
 }
 
-void read_char_block(char char_block[]) {
+void read_char_block(char_block_type char_block) {
     fscanf(stdin, "%10c", char_block);
     return;
 }
 
-void clear_char_block(char arr[]) {
+void clear_char_block(char_block_type char_block) {
     for (int i = 0; i < BLOCK_SIZE; i++) {
-        arr[i] = 0;
+        char_block[i] = 0;
     }
     return;
 }
@@ -49,27 +53,30 @@ int char_block_read(int ind){
     return (ind==BLOCK_SIZE);
 }
 
-// retrives next char from the array 
+// retrives next char from charblock 
 // increases ind by 1 
-
-char get_next_char(char char_block[],int *ind){
+char get_next_char(char_block_type char_block,int *ind){
     char next_char = char_block[*ind];
     *ind = *ind +1;
     return next_char;
 }
 
 
+
 // processes char block (writes char && words to list)
 // params : char block  ; vertex - last vertex of the graph
 // returns : new graph vertex 
+vertex process_char_block(vertex V) {
+    char input_char;
+    char_block_type char_block;
+    clear_char_block(char_block);
+    read_char_block(char_block);
 
-//error on input petya >> alex
-vertex process_char_block(char char_block[], vertex V) {
-    char input_char = char_block[0];
-    int char_ind = 1;
+    input_char = char_block[0];
+    int char_ind = 1;//index of next char
+
     while (1){
         switch (V) {
-    
             case Start:
                 // space or tab termination
                 if (input_char == ' ' || input_char == '\t')
@@ -84,9 +91,7 @@ vertex process_char_block(char char_block[], vertex V) {
 
                 // newline termination - print list, clear list, get ready to input next
                 else if (input_char == '\n') {
-                    term_list();
-                    print_list();
-                    clear_list();
+                    print_sort_clear_list();
                     input_char = get_next_char(char_block,&char_ind);
                 }
 
@@ -205,29 +210,18 @@ vertex process_char_block(char char_block[], vertex V) {
             // exiting program
             //TODO: put add_word here
             case Stop:
-                term_list();
-                print_list();
-                sort_list();
-                print_list();
-                clear_list();
+                print_sort_clear_list();
                 return Stop;
         }
     }
     
-}
+}  
 
 int main() {
-    char char_block[BLOCK_SIZE];
-
     vertex V = Start;
-    clear_char_block(char_block);
-    read_char_block(char_block);
     null_list();
-
     while (V!=Stop) {
-        V = process_char_block(char_block, V);
-        clear_char_block(char_block);
-        read_char_block(char_block);
+        V = process_char_block(V);
     }
     return 0;
 }
