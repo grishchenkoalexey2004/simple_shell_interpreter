@@ -1,6 +1,8 @@
-#include "list.h"
+//TODO : exclude multiple <stdio.h> inclusion
 #include <stdio.h>
 #include <string.h>
+#include "list.h"
+
 // size of symbol block we will read until eof
 #define BLOCK_SIZE 11
 typedef enum {
@@ -130,8 +132,10 @@ vertex process_char_block(char char_block[], vertex V) {
                 if (input_char =='\0'){ // checking if the is finished
                     if (char_block_read(char_ind))
                         return Greater;
-                    else
+                    else{
+                        add_word();//saving '>' before program exit
                         V=Stop;
+                    }
                 }
 
                 else if (input_char == '>') {
@@ -157,8 +161,10 @@ vertex process_char_block(char char_block[], vertex V) {
                 if (input_char =='\0'){ // checking if the is finished
                     if (char_block_read(char_ind))
                         return Ampersand;
-                    else
+                    else{
+                        add_word();//saving '&' before program exit
                         V=Stop;
+                    }
                 }
 
                 else if (input_char == '&') {
@@ -188,6 +194,7 @@ vertex process_char_block(char char_block[], vertex V) {
             case Stop:
                 term_list();
                 print_list();
+                sort_list();
                 clear_list();
                 return Stop;
         }

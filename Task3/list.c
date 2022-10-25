@@ -9,11 +9,13 @@ static list_type lst; /* word list (in array form) */
 static buf_type buf; /* buffer that stores current word*/
 
 static int sizebuf;  /* buffer size of current word*/
-static int sizelist; /* size of current word list*/
+static int sizelist; /* size of current word list (equals to the number of words it can store)*/
 
 static int curbuf;   /* index of letter we are about to write (equals to number of letters stored)*/
-static int curlist;  /* index of current word in the list*/
+static int curlist;  /* index of current word in the list(equals to the number of words
+                                            already stored in the list*/
 
+//procedure from sort.c file
 void sort(list_type *list,int arr_len);
 
 
@@ -94,9 +96,10 @@ void print_list() {
         printf("%s\n", lst[i]);
 }
 
-//sorts lists 
+//sorts lst global var 
 //params: pointer to list and number of elements in the list
-void sort_list(list_type *list,int sizelist){
-    sort(list,sizelist-1);
+void sort_list(){
+    //subtracting 1 from sizelist since we have null at the end 
+    sort(&lst,sizelist-1);
     return;
 }
