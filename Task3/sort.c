@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list_types.h"
-//bubble sort
 
 
 //returns true if second_word<first_word
@@ -43,8 +42,18 @@ int to_swap(buf_type first_word,buf_type second_word){
 	return (greater_word_num==2)?0:1;
 }
 
+//bubble sort
 void sort(list_type *list,int arr_len){
-	printf("%d",to_swap(**list,*(*list+1)));
+	buf_type temp;
+	for (int i =0;i<arr_len-1;i++){
+		for (int k =0;k<arr_len-i-1;k++){
+			if (to_swap(*(*list+k),*(*list+k+1))){
+				temp = *(*list+k);
+				*(*list+k) = *(*list+k+1);
+				*(*list+k+1) = temp;
+			}
+		}
+	}
 	return;
 }
 

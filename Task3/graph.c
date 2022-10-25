@@ -63,6 +63,7 @@ char get_next_char(char char_block[],int *ind){
 // params : char block  ; vertex - last vertex of the graph
 // returns : new graph vertex 
 
+//error on input petya >> alex
 vertex process_char_block(char char_block[], vertex V) {
     char input_char = char_block[0];
     int char_ind = 1;
@@ -75,7 +76,6 @@ vertex process_char_block(char char_block[], vertex V) {
                     input_char = get_next_char(char_block,&char_ind);
 
                 else if (input_char == '\0'){
-
                     if (char_block_read(char_ind))
                         return Start;
                     else
@@ -107,7 +107,19 @@ vertex process_char_block(char char_block[], vertex V) {
                 break;
 
             case Word:
-                if (symset(input_char)) {
+                /*before reading the second symbol of the word we need to make sure that char block
+                                                                                hasn't ended*/
+
+                if (input_char=='\0'){
+                    if (char_block_read(char_ind))
+                        return Word;
+                    else{
+                        add_word();
+                        V=Stop;
+                    } 
+                }  
+
+                else if (symset(input_char)) {
                     add_sym(input_char);
                     input_char = get_next_char(char_block,&char_ind);
 
@@ -191,10 +203,12 @@ vertex process_char_block(char char_block[], vertex V) {
                 break;
 
             // exiting program
+            //TODO: put add_word here
             case Stop:
                 term_list();
                 print_list();
                 sort_list();
+                print_list();
                 clear_list();
                 return Stop;
         }
