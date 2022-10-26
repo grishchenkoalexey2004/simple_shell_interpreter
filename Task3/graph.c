@@ -18,6 +18,8 @@ typedef enum {
     Greater2,
     Ampersand,
     Ampersand2,
+    Vert_slash,
+    Vert_slash2,
     Unpairable_special,
     Stop
 } vertex;
@@ -26,8 +28,7 @@ typedef char char_block_type[BLOCK_SIZE];
 
 // returns 1 if c - special symbol
 int is_special(int c) {
-    return (c == '|') || (c == '&') || (c == ';') || (c == '>') || (c == '<') ||
-           (c == ',');
+    return (c == '|') || (c == '&') || (c == ';') || (c == '>') || (c == '<') || (c == ',');
 }
 
 //checking if symbol of special word is pairable
@@ -35,7 +36,7 @@ int is_pairable(int c){
     return (c == '&') || (c == '>') || (c=='|'); 
 }
 
-
+//tries to find char c in alph array (returns 1 in case of successful search)
 int is_in_alphabet(int c){
     int return_val = 0;
     int index = 0;
@@ -114,7 +115,7 @@ vertex process_char_block(vertex V) {
                 else if (input_char == '\n') {
                     if (error_on_the_line){
                         clear_list();
-                        printf("Unacceptable symbol on line number %d",line_number);
+                        printf("\nUnacceptable symbol on line number %d\n",line_number);
                     }
                     print_sort_clear_list();
                     line_number++;
@@ -125,8 +126,18 @@ vertex process_char_block(vertex V) {
                     null_buf();
                     add_sym(input_char);
                     if (is_pairable(input_char)) { // checking if sym == > | &
-                        V = (input_char == '>') ? Greater : Ampersand;
-                    } else if (is_special(input_char)) { //checking if sym is special and != > | &
+                        switch(input_char){
+                            case '>':
+                                V = Greater;
+                                break;
+                            case '&':
+                                V = Ampersand;
+                                break;
+                            case '|':
+                                V = Vert_slash;
+                                break;
+                        }
+                    } else if (is_special(input_char)) { //checking if sym is special and unpairable
                         V = Unpairable_special;
                     } else if (is_word_symbol(input_char)){
                         V = Word;
@@ -234,14 +245,40 @@ vertex process_char_block(vertex V) {
                 add_word();
                 break;
 
-            
+            case Vert_slash:
+                if (input_char =='\0'){ // checking if the is finished
+                    if (char_block_read(char_ind))
+                        return Vert_slash;
+                    else{
+                        add_word();//saving '&' before program exit
+                        V=Stop;
+                    }
+                }
+
+                else if (input_char == '|') {
+                    add_sym(input_char);
+                    // receiving next word symbol
+                    input_char = get_next_char(char_block,&char_ind);
+                    V = Vert_slash2;
+                }
+
+                else {
+                    V = Start;
+                    add_word();
+                }
+                break;
+
+            case Vert_slash2:
+                V = Start;
+                add_word();
+                break;
+
             case Unpairable_special:
                 add_word();
                 V = Start;
                 break;
 
             // exiting program
-            //TODO: put add_word here
             case Stop:
                 if (error_on_the_line){
                     clear_list();
