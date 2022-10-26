@@ -2,11 +2,13 @@
 //procedures described in list.c and used in sort.c
 void clear_list();
 
+void clear_buf();
+
 void null_list();
 
-void term_list();
-
 void null_buf();
+
+void term_list();
 
 void add_sym(char c);
 

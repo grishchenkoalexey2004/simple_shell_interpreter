@@ -25,14 +25,22 @@ void clear_list() {
     
     if (lst == NULL)
         return;
-    //removing words first
+    //deleting words first
     for (i = 0; lst[i] != NULL; i++)
         free(lst[i]);
 
-    //removing pointers to the words
+    //deleting the block in which list is stored
     free(lst);
 
     null_list();
+    return;
+}
+
+void clear_buf(){
+    if (buf != NULL)
+        free(buf);
+
+    null_buf();
     return;
 }
 
@@ -43,6 +51,7 @@ void null_buf() {
     curbuf = 0;
     return;
 }
+
 
 //sets global variables related to list params to 0 
 void null_list() {
