@@ -88,6 +88,7 @@ char get_next_char(char_block_type char_block,int *ind){
 vertex process_char_block(vertex V) {
     static int line_number = 1;
     static int error_on_the_line = 0;
+    static char unacceptable_sym;
     char input_char;
     char_block_type char_block;
     clear_char_block(char_block);
@@ -115,7 +116,7 @@ vertex process_char_block(vertex V) {
                 else if (input_char == '\n') {
                     if (error_on_the_line){
                         clear_list();
-                        printf("\nUnacceptable symbol on line number %d\n",line_number);
+                        printf("\nUnacceptable symbol on line number %d - '%c'\n",line_number,unacceptable_sym);
                     }
                     print_sort_clear_list();
                     line_number++;
@@ -147,6 +148,7 @@ vertex process_char_block(vertex V) {
                     //error_on_the_line flag is set to 1, and corresponding operations 
                     //are performed when eof or \n chars are met
                     else{
+                        unacceptable_sym = input_char;
                         clear_buf();
                         error_on_the_line = 1;
                         V = Start;
@@ -282,7 +284,7 @@ vertex process_char_block(vertex V) {
             case Stop:
                 if (error_on_the_line){
                     clear_list();
-                        printf("\n Unacceptable symbol on line number %d \n",line_number);
+                        printf("\n Unacceptable symbol on line number %d - '%c' \n",line_number,unacceptable_sym);
 
                 }
                 print_sort_clear_list();
