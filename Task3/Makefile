@@ -12,4 +12,6 @@ list.o: list.c
 graph.o: graph.c
 	gcc -g -Wall -c -o graph.o graph.c
 
+clean:
+	rm *.o
 

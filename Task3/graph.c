@@ -28,7 +28,8 @@ typedef char char_block_type[BLOCK_SIZE];
 
 // returns 1 if c - special symbol
 int is_special(int c) {
-    return (c == '|') || (c == '&') || (c == ';') || (c == '>') || (c == '<') || (c == ',');
+    return (c == '|') || (c == '&') || (c == ';') || (c == '>') || (c == '<') 
+    || (c == '(') || (c==')');
 }
 
 //checking if symbol of special word is pairable
@@ -37,7 +38,7 @@ int is_pairable(int c){
 }
 
 //tries to find char c in alph array (returns 1 in case of successful search)
-int is_in_alphabet(int c){
+int is_word_symbol(int c){
     int return_val = 0;
     int index = 0;
     while (alph[index]!='\0'){
@@ -51,10 +52,10 @@ int is_in_alphabet(int c){
 }
 
 // returns 1 if c - is a normal symbol
-int is_word_symbol(int c) {
-    return (c != '\n') && (c != ' ') && (c != '\t') && (c != EOF) &&
-           (!is_special(c)) && (is_in_alphabet(c));
-}
+// int is_word_symbol(int c) {
+//     return (c != '\n') && (c != ' ') && (c != '\t') && (c != EOF) &&
+//            (!is_special(c)) && (is_in_alphabet(c));
+// }
 
 void read_char_block(char_block_type char_block) {
     fscanf(stdin, "%10c", char_block);
@@ -115,6 +116,9 @@ vertex process_char_block(vertex V) {
                 // newline termination - print list, clear list, get ready to input next
                 else if (input_char == '\n') {
                     if (error_on_the_line){
+                        //null has to be written at the end of the list
+                        //otherwise list can possibly contain zero elements
+                        term_list();
                         clear_list();
                         printf("\nUnacceptable symbol on line number %d - '%c'\n",line_number,unacceptable_sym);
                     }

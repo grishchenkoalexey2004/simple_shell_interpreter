@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "list_types.h"
 
 
@@ -9,8 +10,9 @@ int to_swap(buf_type first_word,buf_type second_word){
 	int greater_word_num = 2; // 
 	int index = 0;
 	while (1){
-		f_w_char = *(first_word+index);
-		s_w_char = *(second_word+index);
+		f_w_char = tolower(*(first_word+index));
+		s_w_char = tolower(*(second_word+index));
+
 		//if one of the words has ended
 		if (f_w_char=='\0' || s_w_char == '\0'){
 			//if second word is longer than first
