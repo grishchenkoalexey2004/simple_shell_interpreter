@@ -1,16 +1,13 @@
-//TODO : exclude multiple <stdio.h> inclusion
 #include <stdio.h>
 #include "list.h"
 
-//TODO : add | symbol 
-//TODO : add malfunction defense
-//TODO : comment out all the code
-
-// size of symbol block we will read until eof
+// size of symbol block 
 #define BLOCK_SIZE 11
 
+//word symbols
 static char alph[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$./_\0";
 
+//graph nodes 
 typedef enum {
     Start,
     Word,
@@ -24,7 +21,9 @@ typedef enum {
     Stop
 } vertex;
 
+//type of char block declared
 typedef char char_block_type[BLOCK_SIZE];
+
 
 // returns 1 if c - special symbol
 int is_special(int c) {
@@ -51,17 +50,13 @@ int is_word_symbol(int c){
     return return_val;
 }
 
-// returns 1 if c - is a normal symbol
-// int is_word_symbol(int c) {
-//     return (c != '\n') && (c != ' ') && (c != '\t') && (c != EOF) &&
-//            (!is_special(c)) && (is_in_alphabet(c));
-// }
-
+//fills char block with 10 new symbols from stdin
 void read_char_block(char_block_type char_block) {
     fscanf(stdin, "%10c", char_block);
     return;
 }
 
+//fills char block with '\0'
 void clear_char_block(char_block_type char_block) {
     for (int i = 0; i < BLOCK_SIZE; i++) {
         char_block[i] = 0;
@@ -83,29 +78,31 @@ char get_next_char(char_block_type char_block,int *ind){
     return next_char;
 }
 
-// processes char block (writes char && words to list)
-// params : char block  ; vertex - last vertex of the graph
-// returns : new graph vertex 
+//reads and processes char block
+//return value - vertex we ended on after processing the last symbol from the char block
 vertex process_char_block(vertex V) {
-    static int line_number = 1;
-    static int error_on_the_line = 0;
-    static char unacceptable_sym;
+
+    static int line_number = 1; //number of current line
+    static int error_on_the_line = 0;// 0- no error 
+    static char unacceptable_sym;//in this variable symbol that caused input error is saved
+
     char input_char;
+    int char_ind = 1;//index of next char
     char_block_type char_block;
+
     clear_char_block(char_block);
     read_char_block(char_block);
 
     input_char = char_block[0];
-    int char_ind = 1;//index of next char
 
     while (1){
         switch (V) {
-
             case Start:
                 // space or tab termination
                 if (input_char == ' ' || input_char == '\t')
                     input_char = get_next_char(char_block,&char_ind);
 
+                //char block end termination
                 else if (input_char == '\0'){
                     if (char_block_read(char_ind))
                         return Start;
@@ -116,17 +113,20 @@ vertex process_char_block(vertex V) {
                 // newline termination - print list, clear list, get ready to input next
                 else if (input_char == '\n') {
                     if (error_on_the_line){
-                        //null has to be written at the end of the list
-                        //otherwise list can possibly contain zero elements
+                        //null has to be written at the end of the list, otherwise clearlist
+                        //won't be able to see the borders of the list
                         term_list();
                         clear_list();
+                        //printing error
                         printf("\nUnacceptable symbol on line number %d - '%c'\n",line_number,unacceptable_sym);
                     }
+                    //do all necessary operations and prepare to process next string
                     print_sort_clear_list();
                     line_number++;
                     input_char = get_next_char(char_block,&char_ind);
                     error_on_the_line = 0;
                 }
+                //if new word is about to be input
                 else {
                     null_buf();
                     add_sym(input_char);
@@ -176,15 +176,6 @@ vertex process_char_block(vertex V) {
                 else if (is_word_symbol(input_char)) {
                     add_sym(input_char);
                     input_char = get_next_char(char_block,&char_ind);
-
-                    if (input_char=='\0'){
-                        if (char_block_read(char_ind))
-                            return Word;
-                        else{
-                            add_word();
-                            V=Stop;
-                        } 
-                    }  
                 } 
 
                 else {
@@ -279,6 +270,7 @@ vertex process_char_block(vertex V) {
                 add_word();
                 break;
 
+            //creates word from one symbol
             case Unpairable_special:
                 add_word();
                 V = Start;
@@ -286,11 +278,14 @@ vertex process_char_block(vertex V) {
 
             // exiting program
             case Stop:
+                //if error was found on the last line
                 if (error_on_the_line){
                     clear_list();
-                        printf("\n Unacceptable symbol on line number %d - '%c' \n",line_number,unacceptable_sym);
+                    printf("\n Unacceptable symbol on line number %d - '%c' \n",line_number,unacceptable_sym);
 
                 }
+                /*print_sort_clear_list does nothing in case the error has been caught and the list has
+                therefore been cleared*/
                 print_sort_clear_list();
                 return Stop;
         }
