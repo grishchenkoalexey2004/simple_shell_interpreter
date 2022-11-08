@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+//todo - remove global var
 
 int string_index = 0;
 //spec_symbol - symbol after backslash 
