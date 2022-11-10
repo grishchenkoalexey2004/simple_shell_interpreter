@@ -8,6 +8,9 @@
 #include <string.h>
 #include <pwd.h>
 #include <grp.h>
+#include <limits.h>
+#include <stdlib.h>
+
 
 
 #define MAX_PATH_LEN 1024
@@ -39,32 +42,35 @@ int is_directory(struct stat stbuf){
 		return 0;
 }
 
+int is_symbolic_link(struct stat stbuf){
+	return S_ISLNK(stbuf.st_mode);
+}
+
 //field "st_mode" of function returned by stat is passed as an argument
 void print_file_type(mode_t file_type_field){
-	short file_type;
 
-	if (S_ISREG(file_type_field))
-		file_type =1;  
+	printf(" ");
+	if (S_ISLNK(file_type_field))
+    	printf("symbolic link");
+	else if(S_ISREG(file_type_field))
+		printf("regular file");  
 	else if (S_ISDIR(file_type_field))
-		file_type = 2;
+		printf("directory");
 	else if (S_ISCHR(file_type_field))  
-		file_type = 3;
+		printf("character device");
 	else if (S_ISBLK(file_type_field))
-        file_type = 4;
+		printf("block device");
     else if (S_ISFIFO(file_type_field))
-    	file_type = 5;
-    else if (S_ISLNK(file_type_field))
-    	file_type = 6;
+    	printf("FIFO");
    	else
-   		file_type = 7;//socket type
+   		printf("socket");
 
-	printf(" %d",file_type);
 	printf(" ");
 
 	return;
 }
 
-//field "st_mode" of function returned by stat is passed as an argument
+//field "st_mode" of function returned by lstat is passed as an argument
 void print_file_rights(mode_t file_type_field){
 
 	mode_t file_rights_flags[9] = {S_IRUSR,S_IWUSR,S_IXUSR,S_IRGRP,S_IWGRP,S_IXGRP,S_IROTH,S_IWOTH,S_IXOTH};
@@ -108,7 +114,6 @@ void print_group_name(gid_t group_index){
 	printf(" ");
 
 	return;
-
 }	
 
 void print_file_size(struct stat stbuf){
@@ -121,7 +126,6 @@ void print_file_size(struct stat stbuf){
 	}
 	else
 		printf("%8ld bytes", stbuf.st_size);
-
 	return;
 }
 
@@ -143,9 +147,9 @@ void print_detailed_info(struct stat stbuf,int show_group){
 /* set of functions is defined by flags*/
 void dirwalk(char *dir,int show_det_stat,int print_recursively,int show_group,int tab_count)
 {
-
 	char filepath [MAX_PATH_LEN];
 	struct stat stbuf;
+	char *resolved_link_path = NULL;
 	Dirent *dp;
 	DIR *dfd;
 
@@ -168,17 +172,29 @@ void dirwalk(char *dir,int show_det_stat,int print_recursively,int show_group,in
 		else {
 
 			sprintf(filepath, "%s/%s", dir, dp->d_name);
-			if (stat(filepath,&stbuf)==-1){
+			if (lstat(filepath,&stbuf)==-1){
 				printf("couldn't access %s",filepath);
 			}
 
 			else{
+
 				for (int i=0;i<tab_count;i++){
 					printf("\t");
 				}
 
 				//writing location of the current file into filepath
 				print_file_name(dp);
+
+				if (is_symbolic_link(stbuf)){
+					resolved_link_path = realpath(filepath,resolved_link_path);
+					if (resolved_link_path){
+						printf(" - > %s",resolved_link_path);					
+						free(resolved_link_path);
+					}
+					else
+						printf("couldn't resolve symbolic link");
+				}
+
 				if (show_det_stat)
 					print_detailed_info(stbuf,show_group);
 

@@ -13,6 +13,9 @@ echo:
 cmp:
 	gcc -g -Wall cmp.c -o cmp.out
 
+ln:
+	gcc -g -Wall ln.c -o ln.out
+	
 clean:
 	rm *.out
 	
