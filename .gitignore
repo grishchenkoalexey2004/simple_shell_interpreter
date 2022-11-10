@@ -55,8 +55,11 @@ Thumbs.db
 *.wmv
 
 
-#pdfs
+#pdfs and txt
 *.pdf
+*.txt
+
+!README.txt
 
 
 #formatter config file 
