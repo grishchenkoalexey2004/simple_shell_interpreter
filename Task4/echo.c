@@ -72,11 +72,13 @@ void print_special_symbol(char spec_symbol,int esc_seq_enabled,int *stop_input){
 
 }
 
-void print_string(char *string,int esc_seq_enabled,int trailing_newline_enabled){
+void print_string(char *string,int esc_seq_enabled){
 	//each string is ended with '\0'
 	char cur_char;
 	char next_char;
 	int stop_input = 0;//stop input when 1
+	string_index = 0;
+	
 	while ((cur_char=string[string_index])!='\0'){
 		if (cur_char == '\\'){
 			string_index+=1;
@@ -92,8 +94,8 @@ void print_string(char *string,int esc_seq_enabled,int trailing_newline_enabled)
 		if (stop_input)
 			break;
 	}
-	if (trailing_newline_enabled)
-		printf("\n");
+
+	
 	return;
 }
 
@@ -117,7 +119,10 @@ int main(int argc,char *argv[]){
 	}
 
 	for (;arg_index<=argc-1;arg_index++){
-		print_string(argv[arg_index],esc_seq_enabled,trailing_newline_enabled);
+		print_string(argv[arg_index],esc_seq_enabled);
+		printf(" ");
 	}
+	if (trailing_newline_enabled)
+		printf("\n");
 	return 0;
 }
