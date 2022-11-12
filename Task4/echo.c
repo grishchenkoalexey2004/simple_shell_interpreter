@@ -3,11 +3,10 @@
 #include <unistd.h>
 //todo - remove global var
 
-int string_index = 0;
 //spec_symbol - symbol after backslash 
 	
 
-void print_special_symbol(char spec_symbol,int esc_seq_enabled,int *stop_input){
+void print_special_symbol(char spec_symbol,int *string_index,int esc_seq_enabled,int *stop_input){
 	char backslash = '\\';
 	switch (spec_symbol){
 		case '\\':
@@ -67,7 +66,7 @@ void print_special_symbol(char spec_symbol,int esc_seq_enabled,int *stop_input){
 			printf("\\");
 			return;
 	}
-	string_index+=1;
+	*string_index+=1;
 	return;
 
 }
@@ -77,13 +76,13 @@ void print_string(char *string,int esc_seq_enabled){
 	char cur_char;
 	char next_char;
 	int stop_input = 0;//stop input when 1
-	string_index = 0;
+	int string_index = 0;
 	
 	while ((cur_char=string[string_index])!='\0'){
 		if (cur_char == '\\'){
 			string_index+=1;
 			next_char = string[string_index];
-			print_special_symbol(next_char,esc_seq_enabled,&stop_input);
+			print_special_symbol(next_char,&string_index,esc_seq_enabled,&stop_input);
 		}
 		else{
 			printf("%c",string[string_index]);

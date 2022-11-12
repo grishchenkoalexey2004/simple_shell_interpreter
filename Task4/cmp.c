@@ -5,23 +5,21 @@
 
 //todo : add foolproof (incorrect file name)
 
-//position of arbitrary error
-long long dif_line_num = 1;
-long long dif_byte_num = 1;
+
 
 //returns 1 if first cmp_bytes_count of char blocks are equal
 //returns 0 if different
-int cmp_ch_blocks(char arr1[],char arr2[],int cmp_bytes_count){
+int cmp_ch_blocks(char arr1[],char arr2[],int cmp_bytes_count,long long *dif_line_num,long long *dif_byte_num){
 	
 	for (int i=0;i<cmp_bytes_count;i++){
 
 		if (arr1[i]==arr2[i]){
 			if (arr1[i]=='\n'){
-				dif_line_num++;
-				dif_byte_num = 1;
+				(*dif_line_num)++;
+				*dif_byte_num = 1;
 			}
 			else{
-				dif_byte_num++;
+				(*dif_byte_num)++;
 			}
 		}
 		else
@@ -30,7 +28,7 @@ int cmp_ch_blocks(char arr1[],char arr2[],int cmp_bytes_count){
 	return 1;
 }
 
-void print_difference_message(char *filename1,char *filename2){
+void print_difference_message(char *filename1,char *filename2,long long dif_line_num,long long dif_byte_num){
 	if (!filename2) //in case second parameter is stdin
 		printf("%s differs from stdin : line %lld  byte %lld\n",filename1,dif_line_num,dif_byte_num);
 	else
@@ -45,6 +43,10 @@ void print_fname_error(char *filename){
 int main(int argc,char *argv[]){
 	const int stdin_fd = 0;
 	const char arg_error_message[] = "not enough arguments";
+
+	//position of arbitrary error
+	long long dif_line_num = 1;
+	long long dif_byte_num = 1;
 
 	int fd_1,fd_2;
 	int difference_found = 0;
@@ -95,18 +97,18 @@ int main(int argc,char *argv[]){
 
 			//the function is invoked even if bytes_read_1 != bytes_read_2 in order 
 			//to find the position of the difference
-			comparison_res = cmp_ch_blocks(char_block1,char_block2,min_bytes_read);
+			comparison_res = cmp_ch_blocks(char_block1,char_block2,min_bytes_read,&dif_line_num,&dif_byte_num);
 
 			if (comparison_res==0)
 				difference_found = 1;
 		}
 
 		if (file1_ended!=file2_ended){
-			print_difference_message(argv[1],argv[2]);
+			print_difference_message(argv[1],argv[2],dif_line_num,dif_byte_num);
 		}
 		else{
 			if (difference_found)
-				print_difference_message(argv[1],argv[2]);
+				print_difference_message(argv[1],argv[2],dif_line_num,dif_byte_num);
 			else
 				printf("Files are identical!\n");
 		}
