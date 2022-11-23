@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "lexem_list_types.h"
 
-#define SIZE 16
+//TODO: add input check
+//TODO: add backslash processing
 
+
+#define SIZE 16
 
 static list_type lst; /* word list */
 static buf_type buf; /* buffer that collects current lexem*/
@@ -12,6 +16,7 @@ static int sizelist; /* word list size*/
 static int curbuf;   /* index of cur symbol in buf*/
 static int curlist;  /* index of cur lexem in array*/
 
+static char spec_sym_array[] = "<>&#|()\"; \n\t";
 
 void clearlist() {
     int i;
@@ -75,9 +80,13 @@ void printlist(list_type lst) {
         printf("%s\n", lst[i]);
 }
 
-int symset(int cur_char) {
-    return (cur_char != '\n') && (cur_char != ' ') && (cur_char != '\t')
-     && (cur_char != '>') && (cur_char != EOF);
+//special symbols:  < > & # | ( ) " ; \n ' ' \t
+int is_word_symbol(int cur_char) {
+    char *char_link = index(spec_sym_array,cur_char);
+    if (char_link!=NULL && cur_char!=EOF)
+        return 1;
+    else
+        return 0;
 }
 
 
@@ -86,7 +95,9 @@ int symset(int cur_char) {
 
 list_type read_lexem_set(int *program_status) {
 	char cur_char;
-    typedef enum { Start, Word, Greater, Greater2, Stop } vertex;
+    typedef enum { Start, Word, Greater, Greater2, Smaller, Ampersand, 
+    Ampersand2, Vert_slash, Vert_slash2, Curly_bracket, Double_quote, Semicolon,
+    Hash, Stop} vertex;
 
     vertex V = Start;
     cur_char = getchar();
@@ -114,7 +125,7 @@ list_type read_lexem_set(int *program_status) {
             break;
 
         case Word:
-            if (symset(cur_char)) {
+            if (is_word_symbol(cur_char)) {
                 addsym(cur_char);
                 cur_char = getchar();
             } 
@@ -141,6 +152,46 @@ list_type read_lexem_set(int *program_status) {
             addword();
             break;
 
+        case Ampersand:
+            if (cur_char == '&') {
+                addsym(cur_char);
+                cur_char = getchar();
+                V = Greater2;
+            } 
+            else {
+                V = Start;
+                addword();
+            }
+            break;
+            
+        case Ampersand2:
+            V = Start;
+            addword();
+            break;
+
+        case Vert_slash:
+            if (cur_char == '|') {
+                addsym(cur_char);
+                cur_char = getchar();
+                V = Greater2;
+            } 
+            else {
+                V = Start;
+                addword();
+            }
+            break;
+            
+        case Vert_slash2:
+            V = Start;
+            addword();
+            break;
+
+        //single-only special symbols : < # ( ) " ;
+        case Curly_bracket: case Hash: case Smaller: case Double_quote : case Semicolon:
+            V=Start;
+            addword();
+            break;
+
         case Stop:
         	return lst;
         }
@@ -148,8 +199,8 @@ list_type read_lexem_set(int *program_status) {
 }
 
 list_type get_lexem_list(int *program_status){
-	list_type lexem_list = read_lexem_set(program_status);
 
+	list_type lexem_list = read_lexem_set(program_status);
 	printlist(lexem_list);
 
 	return lexem_list;
