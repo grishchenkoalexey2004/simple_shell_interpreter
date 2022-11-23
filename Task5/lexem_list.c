@@ -3,9 +3,7 @@
 #include <string.h>
 #include "lexem_list_types.h"
 
-//TODO: add input check
 //TODO: add backslash processing
-
 
 #define SIZE 16
 
@@ -16,7 +14,10 @@ static int sizelist; /* word list size*/
 static int curbuf;   /* index of cur symbol in buf*/
 static int curlist;  /* index of cur lexem in array*/
 
-static char spec_sym_array[] = "<>&#|()\"; \n\t";
+static char spec_sym_array[] = "<>&#|(); \n\t";
+
+//symbols that can be used to create normal words (no special symbols included)
+static char word_sym_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"";
 
 void clearlist() {
     int i;
@@ -80,11 +81,14 @@ void printlist(list_type lst) {
         printf("%s\n", lst[i]);
 }
 
-//special symbols:  < > & # | ( ) " ; \n ' ' \t
 int is_word_symbol(int cur_char) {
-    char *char_link = index(spec_sym_array,cur_char);
-    if (char_link!=NULL && cur_char!=EOF)
+    char *normal_sym_link = index(word_sym_array,cur_char);
+
+    //if symbol!= eof and can be found in array of word symbols - return true
+
+    if (cur_char!=EOF && normal_sym_link!=NULL)
         return 1;
+
     else
         return 0;
 }
@@ -95,9 +99,13 @@ int is_word_symbol(int cur_char) {
 
 list_type read_lexem_set(int *program_status) {
 	char cur_char;
-    typedef enum { Start, Word, Greater, Greater2, Smaller, Ampersand, 
-    Ampersand2, Vert_slash, Vert_slash2, Curly_bracket, Double_quote, Semicolon,
-    Hash, Stop} vertex;
+    // quote_opened = 1 if user inputs symbol
+    int quote_opened = 0;
+
+    
+
+    typedef enum { Start, Word, Greater, Greater2, Ampersand, 
+    Ampersand2, Vert_slash, Vert_slash2, Stop} vertex;
 
     vertex V = Start;
     cur_char = getchar();
@@ -107,22 +115,65 @@ list_type read_lexem_set(int *program_status) {
         switch (V) {
 
         case Start:
+            switch(cur_char){
+                case ' ':case '\t':
+                    cur_char = getchar();
+                    break;
 
-            if (cur_char == ' ' || cur_char == '\t')
-                cur_char = getchar();
+                case EOF: case '\n':
+                    (cur_char==EOF)?(*program_status = 0):(*program_status = 1);
+                    termlist();
+                    V = Stop;
+                    break;
 
-            else if (cur_char == EOF || cur_char== '\n') {
-            	(cur_char==EOF)?(*program_status = 0):(*program_status = 1);
-                termlist();
-                V = Stop;
+               
+                case '&':
+                    nullbuf(); 
+                    addsym(cur_char);
+                    V=Ampersand;
+                    cur_char=getchar();
+                    break;
+
+                case '|':
+                    nullbuf(); 
+                    addsym(cur_char);
+                    V = Vert_slash;
+                    cur_char = getchar();
+                    break;
+                
+                    
+                case '>':
+                    nullbuf(); 
+                    addsym(cur_char);
+                    V = Greater;
+                    cur_char = getchar();
+                    break;
+
+                /*Single_special_characters - special character that can't be doubled, for example '<'*/
+                case '<': case '(': case ')': case ';' : case '#':
+                    nullbuf();
+                    addsym(cur_char);
+                    addword();
+                    V=Start;
+                    cur_char =getchar();
+                    break;
+
+
+                default:
+                    if(is_word_symbol(cur_char)){
+                        if (cur_char == '"')
+                            quote_opened = (quote_opened)?0:1;
+                        nullbuf();
+                        addsym(cur_char);
+                        V = Word;
+                        cur_char = getchar();
+                        break;
+                    }
+                    else{
+                        printf("ERROR : UNACCEPTABLE SYMBOL");
+                    }
+                    
             }
-            else {
-                nullbuf();
-                addsym(cur_char);
-                V = (cur_char == '>') ? Greater : Word;
-                cur_char = getchar();
-            }
-            break;
 
         case Word:
             if (is_word_symbol(cur_char)) {
@@ -183,12 +234,6 @@ list_type read_lexem_set(int *program_status) {
             
         case Vert_slash2:
             V = Start;
-            addword();
-            break;
-
-        //single-only special symbols : < # ( ) " ;
-        case Curly_bracket: case Hash: case Smaller: case Double_quote : case Semicolon:
-            V=Start;
             addword();
             break;
 
