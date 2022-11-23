@@ -17,7 +17,7 @@ static int curlist;  /* index of cur lexem in array*/
 static char spec_sym_array[] = "<>&#|(); \n\t";
 
 //symbols that can be used to create normal words (no special symbols included)
-static char word_sym_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"";
+static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"";
 
 void clearlist() {
     int i;
@@ -70,7 +70,7 @@ void addword() {
 
     lst[curlist++] = buf;
 }
-
+    
 void printlist(list_type lst) {
     int i;
 
@@ -82,7 +82,7 @@ void printlist(list_type lst) {
 }
 
 int is_word_symbol(int cur_char) {
-    char *normal_sym_link = index(word_sym_array,cur_char);
+    char *normal_sym_link = index(word_char_array,cur_char);
 
     //if symbol!= eof and can be found in array of word symbols - return true
 
@@ -105,7 +105,7 @@ list_type read_lexem_set(int *program_status) {
     
 
     typedef enum { Start, Word, Greater, Greater2, Ampersand, 
-    Ampersand2, Vert_slash, Vert_slash2, Stop} vertex;
+    Ampersand2, Vert_slash, Vert_slash2} vertex;
 
     vertex V = Start;
     cur_char = getchar();
@@ -123,10 +123,8 @@ list_type read_lexem_set(int *program_status) {
                 case EOF: case '\n':
                     (cur_char==EOF)?(*program_status = 0):(*program_status = 1);
                     termlist();
-                    V = Stop;
-                    break;
+                    return lst;
 
-               
                 case '&':
                     nullbuf(); 
                     addsym(cur_char);
@@ -167,13 +165,13 @@ list_type read_lexem_set(int *program_status) {
                         addsym(cur_char);
                         V = Word;
                         cur_char = getchar();
-                        break;
                     }
                     else{
                         printf("ERROR : UNACCEPTABLE SYMBOL");
                     }
-                    
+                    break;
             }
+            break; 
 
         case Word:
             if (is_word_symbol(cur_char)) {
@@ -236,15 +234,12 @@ list_type read_lexem_set(int *program_status) {
             V = Start;
             addword();
             break;
-
-        case Stop:
-        	return lst;
         }
     }
 }
 
 list_type get_lexem_list(int *program_status){
-
+    
 	list_type lexem_list = read_lexem_set(program_status);
 	printlist(lexem_list);
 
