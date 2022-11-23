@@ -11,5 +11,10 @@ syntax_tree.o: syntax_tree.c
 shell.o: shell.c
 	gcc -g -Wall -c -o shell.o shell.c
 
+run: ./shell.out
+	./shell.out 
+
+
 clean:
 	rm *.o
+
