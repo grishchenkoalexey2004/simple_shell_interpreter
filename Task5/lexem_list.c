@@ -5,10 +5,9 @@
 #define SIZE 16
 
 
-static int c;      /*текущий символ */
-static list_type lst; /* список слов (в виде массива)*/
-static buf_type buf; /* буфер для накопления текущего слова*/
-static int sizebuf;  /* размер буфера текущего слова*/
+static list_type lst; /* word list */
+static buf_type buf; /* buffer that collects current lexem*/
+static int sizebuf;  /* size of current lexem*/
 static int sizelist; /* word list size*/
 static int curbuf;   /* index of cur symbol in buf*/
 static int curlist;  /* index of cur lexem in array*/
@@ -47,10 +46,10 @@ void nullbuf() {
     curbuf = 0;
 }
 
-void addsym() {
+void addsym(int cur_char) {
     if (curbuf > sizebuf - 1)
         buf = realloc(buf, sizebuf += SIZE);
-    buf[curbuf++] = c;
+    buf[curbuf++] = cur_char;
 }
 
 void addword() {
@@ -66,7 +65,7 @@ void addword() {
     lst[curlist++] = buf;
 }
 
-void printlist() {
+void printlist(list_type lst) {
     int i;
 
     if (lst == NULL)
@@ -76,49 +75,48 @@ void printlist() {
         printf("%s\n", lst[i]);
 }
 
-int symset(int c) {
-    return c != '\n' && c != ' ' && c != '\t' && c != '>' && c != EOF;
+int symset(int cur_char) {
+    return (cur_char != '\n') && (cur_char != ' ') && (cur_char != '\t')
+     && (cur_char != '>') && (cur_char != EOF);
 }
 
-void read_lexem_set() {
-    typedef enum { Start, Word, Greater, Greater2, Newline, Stop } vertex;
-    vertex V = Start;
-    c = getchar();
 
+//returns 0 if eof was found
+//otherwise returns 1 
+
+list_type read_lexem_set(int *program_status) {
+	char cur_char;
+    typedef enum { Start, Word, Greater, Greater2, Stop } vertex;
+
+    vertex V = Start;
+    cur_char = getchar();
     null_list();
 
-    while (1 == 1) {
+    while (1) {
         switch (V) {
 
         case Start:
 
-            if (c == ' ' || c == '\t')
-                c = getchar();
+            if (cur_char == ' ' || cur_char == '\t')
+                cur_char = getchar();
 
-            else if (c == EOF) {
+            else if (cur_char == EOF || cur_char== '\n') {
+            	(cur_char==EOF)?(*program_status = 0):(*program_status = 1);
                 termlist();
-                printlist();
-                clearlist();
                 V = Stop;
-            } 
-            else if (c == '\n') {
-                termlist();
-                printlist();
-                V = Newline;
-                c = getchar();
-            } 
+            }
             else {
                 nullbuf();
-                addsym();
-                V = (c == '>') ? Greater : Word;
-                c = getchar();
+                addsym(cur_char);
+                V = (cur_char == '>') ? Greater : Word;
+                cur_char = getchar();
             }
             break;
 
         case Word:
-            if (symset(c)) {
-                addsym();
-                c = getchar();
+            if (symset(cur_char)) {
+                addsym(cur_char);
+                cur_char = getchar();
             } 
             else {
                 V = Start;
@@ -127,9 +125,9 @@ void read_lexem_set() {
             break;
 
         case Greater:
-            if (c == '>') {
-                addsym();
-                c = getchar();
+            if (cur_char == '>') {
+                addsym(cur_char);
+                cur_char = getchar();
                 V = Greater2;
             } 
             else {
@@ -143,19 +141,16 @@ void read_lexem_set() {
             addword();
             break;
 
-        case Newline:
-            clearlist();
-            V = Start;
-            break;
-
         case Stop:
-            exit(0);
-            break;
+        	return lst;
         }
     }
 }
 
-list_type *get_lexem_list(){
-	read_lexem_set();
-	return &lst;
+list_type get_lexem_list(int *program_status){
+	list_type lexem_list = read_lexem_set(program_status);
+
+	printlist(lexem_list);
+
+	return lexem_list;
 }
