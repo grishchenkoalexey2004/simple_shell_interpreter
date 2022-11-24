@@ -1,4 +1,4 @@
-all: lexem_list.o shell.o
+compile: lexem_list.o shell.o
 	gcc -g -Wall -o shell.out lexem_list.o shell.o
 	rm *.o
 
