@@ -94,18 +94,19 @@ int is_word_symbol(int cur_char) {
 }
 
 
-//returns 0 if eof was found
-//otherwise returns 1 
+//0 is assigned to program status if \n was found (in other words command has ended) 
+//1 is assigned if eof was found (need to exit the program)
+//2 is assigned if error was found
 
 list_type read_lexem_set(int *program_status) {
-	char cur_char;
+	int cur_char;
     // quote_opened = 1 if user inputs symbol
     int quote_opened = 0;
 
     
 
     typedef enum { Start, Word, Greater, Greater2, Ampersand, 
-    Ampersand2, Vert_slash, Vert_slash2} vertex;
+    Ampersand2, Vert_slash, Vert_slash2, Quoted_sequence} vertex;
 
     vertex V = Start;
     cur_char = getchar();
@@ -120,8 +121,13 @@ list_type read_lexem_set(int *program_status) {
                     cur_char = getchar();
                     break;
 
-                case EOF: case '\n':
-                    (cur_char==EOF)?(*program_status = 0):(*program_status = 1);
+                case EOF: 
+                    *program_status = 1;
+                    termlist();
+                    return lst;
+
+                case '\n':
+                    *program_status = 0;
                     termlist();
                     return lst;
 
@@ -156,22 +162,54 @@ list_type read_lexem_set(int *program_status) {
                     cur_char =getchar();
                     break;
 
-
+                //processing of word symbols 
+                //in this section error is raised in case symbol doesn't belong to word symbol set
                 default:
-                    if(is_word_symbol(cur_char)){
-                        if (cur_char == '"')
-                            quote_opened = (quote_opened)?0:1;
+                    if(is_word_symbol(cur_char)){                        
                         nullbuf();
-                        addsym(cur_char);
-                        V = Word;
+
+                        if (cur_char == '"'){
+                            quote_opened = 1; //quote will be close in word node
+                            V = Quoted_sequence;
+                        }
+                        else{
+                            addsym(cur_char);
+                            V = Word;
+                        }
+                        
                         cur_char = getchar();
                     }
+
                     else{
-                        printf("ERROR : UNACCEPTABLE SYMBOL");
+                        printf("ERROR! : UNACCEPTABLE SYMBOL");
+                        *program_status = 2;
+                        termlist();
+                        return lst;
                     }
-                    break;
             }
             break; 
+
+        case Quoted_sequence:
+            while (cur_char!=EOF && cur_char!='"'){
+                addsym(cur_char);
+                cur_char = getchar();
+            }
+
+
+            //closing quote found
+            if (cur_char=='"'){
+                quote_opened = 0;
+                addword();
+                V=Start;
+                cur_char = getchar();
+            }
+            if (cur_char == EOF){
+                *program_status = 2;
+                addword(); // adding word to wordlist in order to avoid memory leak
+                termlist();
+                return lst;
+            }
+            break;
 
         case Word:
             if (is_word_symbol(cur_char)) {
@@ -182,6 +220,7 @@ list_type read_lexem_set(int *program_status) {
                 V = Start;
                 addword();
             }
+            
             break;
 
         case Greater:
@@ -239,7 +278,7 @@ list_type read_lexem_set(int *program_status) {
 }
 
 list_type get_lexem_list(int *program_status){
-    
+
 	list_type lexem_list = read_lexem_set(program_status);
 	printlist(lexem_list);
 
