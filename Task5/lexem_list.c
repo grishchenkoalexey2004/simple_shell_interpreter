@@ -103,7 +103,7 @@ int is_word_symbol(int cur_char) {
 //1 is assigned if eof was found (need to exit the program)
 //2 is assigned if error was found
 
-list_type read_lexem_set(int *program_status) {
+list_type read_lexem_set(status *program_status) {
 	int cur_char;    
 
     vertex V = Start;
@@ -120,12 +120,12 @@ list_type read_lexem_set(int *program_status) {
                     break;
 
                 case EOF: 
-                    *program_status = 1;
+                    *program_status = Finish;
                     termlist();
                     return lst;
 
                 case '\n':
-                    *program_status = 0;
+                    *program_status = Success;
                     termlist();
                     return lst;
 
@@ -176,7 +176,7 @@ list_type read_lexem_set(int *program_status) {
                         if (cur_char == '\\'){
                             cur_char = getchar();
                             if (cur_char == EOF){
-                                *program_status = 1;
+                                *program_status = Finish;
                                 termlist();
                                 return lst; 
                                                            }
@@ -197,7 +197,7 @@ list_type read_lexem_set(int *program_status) {
 
                     else{
                         printf("ERROR! : UNACCEPTABLE SYMBOL!");
-                        *program_status = 2;
+                        *program_status = Error;
                         termlist();
                         return lst;
                     }
@@ -236,7 +236,7 @@ list_type read_lexem_set(int *program_status) {
             }
             else if ((cur_char == EOF) || (cur_char == '\n')){
                 printf("ERROR! Double quote hasn't been closed");
-                *program_status = 2;
+                *program_status = Error;
                 addword(); // adding word to wordlist in order to avoid memory leak
                 termlist();
                 return lst;
@@ -327,7 +327,7 @@ list_type read_lexem_set(int *program_status) {
     }
 }
 
-list_type get_lexem_list(int *program_status){
+list_type get_lexem_list(status *program_status){
 
 	list_type lexem_list = read_lexem_set(program_status);
 	printlist(lexem_list);

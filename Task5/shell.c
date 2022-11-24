@@ -1,18 +1,21 @@
 #include <stdio.h>
 #include "lexem_list_types.h"
 
-list_type get_lexem_list(int *program_status);
+list_type get_lexem_list(status *program_status);
 
 
 int main(int argc,char *argv[]){
-	int continue_reading = 1;
+	status program_status;
 	list_type lexem_list = NULL;
 
-	while (continue_reading){
-		printf(">>");
-		lexem_list = get_lexem_list(&continue_reading);
+	while (program_status == Success){
+		printf("=>");
+		lexem_list = get_lexem_list(&program_status);
 
+	}
 
+	if (program_status == Error){
+		return 1;
 	}
 
 	return 0;
