@@ -4,8 +4,15 @@
 #include "lexem_list_types.h"
 
 //TODO: add backslash processing
+//TODO: create enumerated data type for program_status 
+//TODO: organize error printing 
 
 #define SIZE 16
+
+//graph type
+typedef enum { Start, Word, Greater, Greater2, Ampersand, 
+    Ampersand2, Vert_slash, Vert_slash2, Quoted_sequence} vertex;
+
 
 static list_type lst; /* word list */
 static buf_type buf; /* buffer that collects current lexem*/
@@ -17,7 +24,7 @@ static int curlist;  /* index of cur lexem in array*/
 static char spec_sym_array[] = "<>&#|(); \n\t";
 
 //symbols that can be used to create normal words (no special symbols included)
-static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"";
+static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"\\";
 
 void clearlist() {
     int i;
@@ -93,20 +100,12 @@ int is_word_symbol(int cur_char) {
         return 0;
 }
 
-
 //0 is assigned to program status if \n was found (in other words command has ended) 
 //1 is assigned if eof was found (need to exit the program)
 //2 is assigned if error was found
 
 list_type read_lexem_set(int *program_status) {
-	int cur_char;
-    // quote_opened = 1 if user inputs symbol
-    int quote_opened = 0;
-
-    
-
-    typedef enum { Start, Word, Greater, Greater2, Ampersand, 
-    Ampersand2, Vert_slash, Vert_slash2, Quoted_sequence} vertex;
+	int cur_char;    
 
     vertex V = Start;
     cur_char = getchar();
@@ -169,9 +168,23 @@ list_type read_lexem_set(int *program_status) {
                         nullbuf();
 
                         if (cur_char == '"'){
-                            quote_opened = 1; //quote will be close in word node
                             V = Quoted_sequence;
                         }
+
+                        else if (cur_char == '\\'){
+                            cur_char = getchar();
+                            if (cur_char == EOF){
+                                *program_status = 1;
+                                termlist();
+                                return lst; 
+                                                           }
+                            else{
+                                addsym(cur_char);
+                                V = Word;
+                            }
+                            
+                        }
+
                         else{
                             addsym(cur_char);
                             V = Word;
@@ -181,7 +194,7 @@ list_type read_lexem_set(int *program_status) {
                     }
 
                     else{
-                        printf("ERROR! : UNACCEPTABLE SYMBOL");
+                        printf("ERROR! : UNACCEPTABLE SYMBOL!");
                         *program_status = 2;
                         termlist();
                         return lst;
@@ -190,20 +203,37 @@ list_type read_lexem_set(int *program_status) {
             break; 
 
         case Quoted_sequence:
-            while (cur_char!=EOF && cur_char!='"'){
-                addsym(cur_char);
-                cur_char = getchar();
-            }
+            while (cur_char!=EOF && cur_char!='"' && cur_char!='\n'){
 
+                if (cur_char == '\\'){
+                    cur_char = getchar();
+
+                    if (cur_char!=EOF){
+                        addsym(cur_char);
+                        cur_char = getchar();
+                    }
+
+                    else{
+                        addword();
+                        V = Start;
+                    }
+                }
+
+                else{
+                    addsym(cur_char);
+                    cur_char = getchar();
+                }
+                
+            }
 
             //closing quote found
             if (cur_char=='"'){
-                quote_opened = 0;
                 addword();
                 V=Start;
                 cur_char = getchar();
             }
-            if (cur_char == EOF){
+            else if ((cur_char == EOF) || (cur_char == '\n')){
+                printf("ERROR! Double quote hasn't been closed");
                 *program_status = 2;
                 addword(); // adding word to wordlist in order to avoid memory leak
                 termlist();
@@ -213,8 +243,26 @@ list_type read_lexem_set(int *program_status) {
 
         case Word:
             if (is_word_symbol(cur_char)) {
-                addsym(cur_char);
-                cur_char = getchar();
+
+                if (cur_char == '\\'){
+                    cur_char = getchar();
+
+                    if (cur_char!=EOF){
+                        addsym(cur_char);
+                        cur_char = getchar();
+                    }
+
+                    else{
+                        addword();
+                        V = Start;
+                    }
+                }
+
+                else{
+                    addsym(cur_char);
+                    cur_char = getchar();
+                }
+                
             } 
             else {
                 V = Start;
