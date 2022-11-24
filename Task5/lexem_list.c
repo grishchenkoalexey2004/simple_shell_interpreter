@@ -3,7 +3,6 @@
 #include <string.h>
 #include "lexem_list_types.h"
 
-//TODO: add backslash processing
 //TODO: create enumerated data type for program_status 
 //TODO: organize error printing 
 
@@ -24,7 +23,7 @@ static int curlist;  /* index of cur lexem in array*/
 static char spec_sym_array[] = "<>&#|(); \n\t";
 
 //symbols that can be used to create normal words (no special symbols included)
-static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\"\\";
+static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\\";
 
 void clearlist() {
     int i;
@@ -143,7 +142,12 @@ list_type read_lexem_set(int *program_status) {
                     V = Vert_slash;
                     cur_char = getchar();
                     break;
-                
+
+                case '"':
+                    nullbuf();
+                    V = Quoted_sequence;
+                    cur_char =getchar();
+                    break;
                     
                 case '>':
                     nullbuf(); 
@@ -167,11 +171,9 @@ list_type read_lexem_set(int *program_status) {
                     if(is_word_symbol(cur_char)){                        
                         nullbuf();
 
-                        if (cur_char == '"'){
-                            V = Quoted_sequence;
-                        }
+                        
 
-                        else if (cur_char == '\\'){
+                        if (cur_char == '\\'){
                             cur_char = getchar();
                             if (cur_char == EOF){
                                 *program_status = 1;
