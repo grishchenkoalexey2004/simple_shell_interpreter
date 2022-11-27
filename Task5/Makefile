@@ -1,5 +1,5 @@
-compile: lexem_list.o shell.o
-	gcc -g -Wall -o shell.out lexem_list.o shell.o
+compile: lexem_list.o syntax_tree.o shell.o
+	gcc -g -Wall -o shell.out lexem_list.o syntax_tree.o shell.o
 	rm *.o
 
 lexem_list.o: lexem_list.c
