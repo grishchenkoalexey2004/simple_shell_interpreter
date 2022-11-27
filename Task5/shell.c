@@ -10,6 +10,8 @@ int get_lexem_list_len(list_type lst);
 
 cmd_link build_syntax_tree(list_type lst,int start_index,int end_index);
 
+void print_syntax_tree(cmd_link cmd_tree_root);
+
 int main(int argc,char *argv[]){
 	status program_status;
  	int lexem_list_len = 0;	
@@ -22,28 +24,31 @@ int main(int argc,char *argv[]){
 		lexem_list = get_lexem_list(&program_status);
 
 		if (program_status == Success){
+
 			//print_string_list(lexem_list);
 			lexem_list_len = get_lexem_list_len(lexem_list);
-			if (lexem_list_len)
-				tree_root = build_syntax_tree(lexem_list,0,lexem_list_len-1);
+
+			if (lexem_list_len == 0)
+				continue;
+
+			tree_root = build_syntax_tree(lexem_list,0,lexem_list_len-1);
+			//add null value check!
+			print_syntax_tree(tree_root);
 		}
 
 		else if (program_status == Finish){
 			print_string_list(lexem_list);
 			break;
 		}
-		else 
+		else if (program_status == Error)
 			break;
+		
 
 	}
 	
-	
-		 
-	
-
-	if (program_status == Error){
+	if (program_status == Error)
 		return 1;
-	}
+	
 
 	return 0;
 }
