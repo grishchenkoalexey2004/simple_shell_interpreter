@@ -18,8 +18,6 @@ static int sizelist; /* word list size*/
 static int curbuf;   /* index of cur symbol in buf*/
 static int curlist;  /* index of cur lexem in array*/
 
-static char spec_sym_array[] = "<>&#|(); \n\t";
-
 //symbols that can be used to create normal words (no special symbols included)
 static char word_char_array[] = "abcdefghijklmnopqrstuvwxyz0123456789$.,/_\\";
 
@@ -75,7 +73,7 @@ void addword() {
     lst[curlist++] = buf;
 }
     
-void print_lexem_list(list_type lst) {
+void print_string_list(list_type lst) {
     int i;
 
     if (lst == NULL)
@@ -97,19 +95,30 @@ int is_word_symbol(int cur_char) {
         return 0;
 }
 
+int get_lexem_list_len(list_type lst){
+    int len = 0;
+
+    while (lst[len]!=NULL){
+        len++;
+    }
+
+    return len;
+
+}
+
 int is_error(int bracket_balance_error,int quote_balance_error,int unacceptable_char_error){
     return (bracket_balance_error||quote_balance_error||unacceptable_char_error);
 }
 
 void print_errors(int bracket_balance_error,int quote_balance_error,int unacceptable_char_error){
     if (bracket_balance_error)
-        printf("BRACKET BALANCE ERROR");
+        printf("BRACKET BALANCE ERROR\n");
     
     if (quote_balance_error)
-        printf("QUOTE BALANCE ERROR");
+        printf("QUOTE BALANCE ERROR\n");
     
     if (unacceptable_char_error)
-        printf("UNACCEPTABLE_CHAR_ERROR");
+        printf("UNACCEPTABLE_CHAR_ERROR\n");
     return;
 }
 
