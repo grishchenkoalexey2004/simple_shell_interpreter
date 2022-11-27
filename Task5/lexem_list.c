@@ -3,9 +3,7 @@
 #include <string.h>
 #include "lexem_list_types.h"
 
-//TODO: create enumerated data type for program_status 
 //TODO: organize error printing 
-
 #define SIZE 16
 
 //graph type
@@ -77,7 +75,7 @@ void addword() {
     lst[curlist++] = buf;
 }
     
-void printlist(list_type lst) {
+void print_lexem_list(list_type lst) {
     int i;
 
     if (lst == NULL)
@@ -99,12 +97,33 @@ int is_word_symbol(int cur_char) {
         return 0;
 }
 
+int is_error(int bracket_balance_error,int quote_balance_error,int unacceptable_char_error){
+    return (bracket_balance_error||quote_balance_error||unacceptable_char_error);
+}
+
+void print_errors(int bracket_balance_error,int quote_balance_error,int unacceptable_char_error){
+    if (bracket_balance_error)
+        printf("BRACKET BALANCE ERROR");
+    
+    if (quote_balance_error)
+        printf("QUOTE BALANCE ERROR");
+    
+    if (unacceptable_char_error)
+        printf("UNACCEPTABLE_CHAR_ERROR");
+    return;
+}
+
 //0 is assigned to program status if \n was found (in other words command has ended) 
 //1 is assigned if eof was found (need to exit the program)
 //2 is assigned if error was found
-
-list_type read_lexem_set(status *program_status) {
+//all errors are processed than eof or \n are reached
+list_type get_lexem_list(status *program_status) {
 	int cur_char;    
+    int bracket_balance = 0;
+
+    int bracket_balance_error = 0;
+    int quote_balance_error = 0;
+    int unacceptable_char_error = 0;
 
     vertex V = Start;
     cur_char = getchar();
@@ -119,13 +138,26 @@ list_type read_lexem_set(status *program_status) {
                     cur_char = getchar();
                     break;
 
-                case EOF: 
-                    *program_status = Finish;
+                case EOF:
+
+                    if (is_error(bracket_balance_error, quote_balance_error, unacceptable_char_error)){
+                        print_errors(bracket_balance_error, quote_balance_error, unacceptable_char_error);
+                        *program_status = Error;
+                    }
+                    else{
+                        *program_status = Finish;
+                    }
                     termlist();
                     return lst;
 
                 case '\n':
-                    *program_status = Success;
+                    if (is_error(bracket_balance_error, quote_balance_error, unacceptable_char_error)){
+                        print_errors(bracket_balance_error, quote_balance_error, unacceptable_char_error);
+                        *program_status = Error;
+                    }
+                    else{
+                        *program_status = Success;
+                    }
                     termlist();
                     return lst;
 
@@ -158,6 +190,16 @@ list_type read_lexem_set(status *program_status) {
 
                 /*Single_special_characters - special character that can't be doubled, for example '<'*/
                 case '<': case '(': case ')': case ';' : case '#':
+                    if (cur_char == '(')
+                        bracket_balance++;
+
+                    if (cur_char == ')')
+                        bracket_balance--;
+
+                    if (bracket_balance<0){
+                        bracket_balance_error = 1;
+                    }
+
                     nullbuf();
                     addsym(cur_char);
                     addword();
@@ -195,11 +237,10 @@ list_type read_lexem_set(status *program_status) {
                         cur_char = getchar();
                     }
 
+
                     else{
-                        printf("ERROR! : UNACCEPTABLE SYMBOL!");
-                        *program_status = Error;
-                        termlist();
-                        return lst;
+                        unacceptable_char_error = 1;
+                        cur_char = getchar();
                     }
             }
             break; 
@@ -235,11 +276,10 @@ list_type read_lexem_set(status *program_status) {
                 cur_char = getchar();
             }
             else if ((cur_char == EOF) || (cur_char == '\n')){
-                printf("ERROR! Double quote hasn't been closed");
-                *program_status = Error;
-                addword(); // adding word to wordlist in order to avoid memory leak
-                termlist();
-                return lst;
+                V = Start;
+                quote_balance_error = 1;
+                addword();// adding word in order to avoid mem leak
+                
             }
             break;
 
@@ -325,12 +365,4 @@ list_type read_lexem_set(status *program_status) {
             break;
         }
     }
-}
-
-list_type get_lexem_list(status *program_status){
-
-	list_type lexem_list = read_lexem_set(program_status);
-	printlist(lexem_list);
-
-	return lexem_list;
 }
