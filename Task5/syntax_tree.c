@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "lexem_list_types.h"
 #include "syntax_tree_types.h"
 
@@ -44,20 +45,53 @@ void print_list_slice(list_type lst,int start_index,int end_index){
     return;
 }
 
+//searches for ")" in [start_index,end_index] range
+//the scenario in which closing bracket isn't found is impossible
+
+int find_closing_bracket(list_type lst,int start_index,int end_index){
+	int index = start_index;
+	while (1){
+		if (strcmp(lst[index],")")==0)
+			return index;
+		
+		index++;
+
+	}
+}
+
 //returns index of the separator
+/* 
+ignores separators that are inside curly brackets 
+these separators will be parsed during subshell parsing stage
+*/
+
+// (-1) if separator wasn't found in the remaining part of the lexem list
 
 int find_separator(list_type lst,int start_index,int end_index){
 	int index = start_index;
+	for(;index<=end_index;){
 
-	for(;index<=end_index;index++){
+		if (strcmp("(",lst[index])==0){
+			index = find_closing_bracket(lst,start_index,end_index)+1;
+			continue;
+		}
+
 		if (is_separator(lst[index]))
-			return index;	
-	}
+			return index;
 
+		index++;
+	}
 	return -1;//return last element of the list
 	//in this case
 }
 
+//returns index of "|" 
+// if no vert_slash found returns (-1);
+
+int find_pipe_sym(){
+	
+	return 0;
+}
 
 //all lexems inside list are indexed
 //each function forming syntaxtree works in predefined slice of lexem list
@@ -65,25 +99,51 @@ int find_separator(list_type lst,int start_index,int end_index){
 cmd_link build_syntax_tree(list_type lst,int start_index,int end_index){
 	char *separator = NULL;
 	int sep_index;
-	cmd_link tree_root = NULL;
+	cmd_link tree_root =NULL;
+	cmd_link prev_cmd;
+	cmd_link new_cmd;
 
 	while (1){
 		sep_index =find_separator(lst,start_index,end_index);
 		if (sep_index!=(-1)){
-			print_list_slice(lst,start_index, sep_index-1);
+
+			//print_list_slice(lst,start_index, sep_index-1);
 			separator = lst[sep_index];
 			start_index  = sep_index+1;
+
+			if (tree_root == NULL){ //first entry of the loop
+				tree_root = malloc(sizeof(struct cmd_inf));
+				tree_root->separator = separator;
+				prev_cmd = tree_root;
+			}
+
+			else{
+				new_cmd = malloc(sizeof(struct cmd_inf));
+				new_cmd->separator = separator;
+				prev_cmd->next = new_cmd;
+				prev_cmd = new_cmd;
+			}
+
 		}
+
 		else{
-			if (start_index<=end_index){
-				print_list_slice(lst, start_index, end_index); // printing the last part
+
+			if (start_index<=end_index){				
+				new_cmd = malloc(sizeof(struct cmd_inf));
+				//print_list_slice(lst, start_index, end_index); // printing the last part
+				new_cmd->separator = NULL;
+				prev_cmd->next = new_cmd;
+				new_cmd->next = NULL;
 				break;
 			}
-			else 
+
+			else{
+				prev_cmd->next = NULL;
 				break; // this branch will be executed if command ends by &
+			}
 		}
 		
 	} 
 
-	return NULL;
+	return tree_root;
 }
